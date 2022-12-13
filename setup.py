@@ -53,7 +53,7 @@ setup(
         "einops==0.3.0",
         "timm>=0.4.12",  # for vendored blip
         "torchdiffeq",
-        "transformers==4.19.2",
+        "transformers>=4.25.1",
         "torchmetrics==0.6.0",
         "torchvision>=0.13.1",
         "kornia==0.6",
