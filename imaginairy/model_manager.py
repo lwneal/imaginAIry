@@ -7,9 +7,9 @@ import sys
 import requests
 import torch
 from omegaconf import OmegaConf
-from transformers import cached_path
+from transformers.utils.hub import cached_file
 from transformers.utils.hub import TRANSFORMERS_CACHE, HfFolder
-from transformers.utils.hub import url_to_filename as tf_url_to_filename
+#from transformers.utils.hub import url_to_filename as tf_url_to_filename
 
 from imaginairy import config as iconfig
 from imaginairy.config import MODEL_SHORT_NAMES
@@ -213,11 +213,8 @@ def get_cached_url_path(url):
     Gets the contents of a url, but caches the response indefinitely
 
     While we attempt to use the cached_path from huggingface transformers, we fall back
-    to our own implementation if the url does not provide an etag header, which `cached_path`
-    requires.  We also skip the `head` call that `cached_path` makes on every call if the file
-    is already cached.
+    to our own implementation.
     """
-
     try:
         return huggingface_cached_path(url)
     except (OSError, ValueError):
@@ -263,11 +260,22 @@ def check_huggingface_url_authorized(url):
     return None
 
 
+def parse_repo_id_from_url(url):
+    # Example input:
+    # https://huggingface.co/stabilityai/stable-diffusion-2-1-base/resolve/main/v2-1_512-ema-pruned.ckpt
+    # Example output:
+    # ('stabilityai/stable-diffusion-2-1-base', 'v2-1_512-ema-pruned.ckpt')
+    if not url.startswith("https://huggingface.co/"):
+        raise ValueError('Invalid HuggingFace URL {}'.format(url))
+    url = url.replace("https://huggingface.co/", "")
+    parts = url.split("/")
+    if len(parts) < 3:
+        raise ValueError("Invalid model URL {}".format(url))
+    repo_id = "/".join(parts[:2])
+    filename = parts[-1]
+    return repo_id, filename
+
+
 def huggingface_cached_path(url):
-    # bypass all the HEAD calls done by the default `cached_path`
-    dest_path = find_url_in_huggingface_cache(url)
-    if not dest_path:
-        check_huggingface_url_authorized(url)
-        token = HfFolder.get_token()
-        dest_path = cached_path(url, use_auth_token=token)
-    return dest_path
+    repo_id, filename = parse_repo_id_from_url(url)
+    return cached_file(repo_id, filename)
