@@ -526,15 +526,17 @@ a bowl full of gold bars sitting on a table
 For full command line instructions run `aimg --help`
 
 ```python
-from imaginairy import imagine, imagine_image_files, ImaginePrompt, WeightedPrompt, LazyLoadingImage
+from imaginairy.api import imagine, imagine_image_files
+from imaginairy.schema import ImaginePrompt, WeightedPrompt, LazyLoadingImage
 
 url = "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Thomas_Cole_-_Architect%E2%80%99s_Dream_-_Google_Art_Project.jpg/540px-Thomas_Cole_-_Architect%E2%80%99s_Dream_-_Google_Art_Project.jpg"
+
 prompts = [
     ImaginePrompt("a scenic landscape", seed=1, upscale=True),
     ImaginePrompt("a bowl of fruit"),
     ImaginePrompt([
-        WeightedPrompt("cat", weight=1),
-        WeightedPrompt("dog", weight=1),
+        WeightedPrompt(text="cat", weight=1),
+        WeightedPrompt(text="dog", weight=1),
     ]),
     ImaginePrompt(
         "a spacious building", 
@@ -549,6 +551,7 @@ prompts = [
     ),
     ImaginePrompt("strawberries", tile_mode=True),
 ]
+
 for result in imagine(prompts):
     # do something
     result.save("my_image.jpg")
